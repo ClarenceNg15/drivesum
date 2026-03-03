@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drivesum — Singapore Car Cost Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f5f2;
+    --white: #ffffff;
+    --ink: #1a1a18;
+    --ink2: #3d3d3a;
+    --muted: #8c8c88;
+    --border: #e4e2de;
+    --accent: #1a5c3a;
+    --accent-light: #edf5f0;
+    --disabled-bg: #f2f2f0;
+    --disabled-text: #c0c0bc;
+    --radius: 12px;
+    --shadow: 0 2px 16px rgba(26,26,24,0.07);
+    --shadow-lg: 0 8px 40px rgba(26,26,24,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Figtree', sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  header {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+  }
+  .header-inner {
+    max-width: 1080px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; height: 64px;
+  }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 500; color: var(--ink); }
+  .logo span { color: var(--accent); }
+  .header-tag { font-size: 0.72rem; font-weight: 500; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+
+  .hero {
+    background: var(--white);
+    padding: 52px 40px 44px; text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.9rem, 4vw, 2.9rem); font-weight: 400;
+    color: var(--ink); letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 14px;
+  }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero p { font-size: 0.97rem; color: var(--muted); max-width: 460px; margin: 0 auto; font-weight: 300; }
+
+  .main {
+    max-width: 1080px; margin: 0 auto;
+    padding: 36px 24px 80px;
+    display: grid; grid-template-columns: 1fr 370px; gap: 26px; align-items: start;
+  }
+  @media (max-width: 860px) {
+    .main { grid-template-columns: 1fr; }
+    header, .hero { padding-left: 20px; padding-right: 20px; }
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px 30px; margin-bottom: 18px;
+    box-shadow: var(--shadow); animation: fadeUp 0.35s ease both;
+  }
+  .card:nth-child(2) { animation-delay: 0.06s; }
+  .card:nth-child(3) { animation-delay: 0.12s; }
+  .card:nth-child(4) { animation-delay: 0.18s; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-title {
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.11em; color: var(--muted); margin-bottom: 22px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .step-num {
+    width: 21px; height: 21px; background: var(--accent); color: white;
+    border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.62rem; font-weight: 700; flex-shrink: 0;
+  }
+
+  /* PRICE */
+  .price-input-wrap { position: relative; margin-bottom: 8px; }
+  .price-prefix {
+    position: absolute; left: 17px; top: 50%; transform: translateY(-50%);
+    font-family: 'Playfair Display', serif; font-size: 1.35rem; color: var(--muted); pointer-events: none;
+  }
+  .price-input {
+    width: 100%; padding: 17px 17px 17px 36px;
+    font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 400; color: var(--ink);
+    background: var(--bg); border: 2px solid var(--border); border-radius: 10px;
+    outline: none; transition: border-color 0.2s; letter-spacing: -0.02em;
+  }
+  .price-input:focus { border-color: var(--accent); }
+  .price-hint { font-size: 0.73rem; color: var(--muted); margin-top: 5px; }
+  .price-hint a { color: var(--accent); text-decoration: none; }
+
+  /* NEW/USED TOGGLE */
+  .toggle-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .toggle-btn {
+    padding: 11px 16px; border: 1.5px solid var(--border); border-radius: 9px;
+    font-family: 'Figtree', sans-serif; font-size: 0.84rem; font-weight: 600;
+    color: var(--muted); background: var(--white); cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .toggle-btn:hover { border-color: var(--accent); color: var(--ink); }
+  .toggle-btn.active { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+
+  /* PARF BOX */
+  .parf-box {
+    background: var(--accent-light); border: 1px solid #c4dfd0;
+    border-radius: 9px; padding: 14px 16px; margin-top: 16px;
+  }
+  .parf-box-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--accent); margin-bottom: 10px; }
+  .parf-new-info { font-size: 0.8rem; color: var(--ink2); line-height: 1.6; }
+  .parf-new-info strong { color: var(--accent); }
+
+  .parf-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media (max-width: 480px) { .parf-options { grid-template-columns: 1fr; } }
+
+  .parf-tile {
+    border: 1.5px solid #c4dfd0; border-radius: 8px; padding: 11px 12px;
+    cursor: pointer; transition: all 0.15s; background: var(--white); position: relative;
+  }
+  .parf-tile:hover { border-color: var(--accent); }
+  .parf-tile.selected { border-color: var(--accent); background: rgba(26,92,58,0.05); }
+  .parf-tile.selected::after {
+    content: '✓'; position: absolute; top: 8px; right: 10px;
+    font-size: 0.65rem; color: var(--accent); font-weight: 700;
+  }
+  .pt-label  { font-size: 0.8rem; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+  .pt-desc   { font-size: 0.68rem; color: var(--muted); line-height: 1.4; }
+  .pt-rebate { font-size: 0.72rem; font-weight: 600; color: var(--accent); margin-top: 6px; }
+
+  /* YEARS LEFT */
+  .years-left-row {
+    margin-top: 12px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .years-left-row label {
+    font-size: 0.7rem; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
+  }
+  .years-left-row select {
+    padding: 8px 28px 8px 11px; border: 1.5px solid #c4dfd0; border-radius: 7px;
+    font-family: 'Figtree', sans-serif; font-size: 0.84rem; color: var(--ink);
+    background: white; outline: none; -webkit-appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c88' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 9px center;
+  }
+
+  /* DEPN PREVIEW */
+  .depn-preview {
+    font-size: 0.74rem; color: var(--muted); background: rgba(26,92,58,0.04);
+    border-radius: 6px; padding: 7px 11px; margin-top: 10px; line-height: 1.5;
+  }
+  .depn-preview strong { color: var(--ink2); }
+
+  /* LOAN FIELDS */
+  .field-row { display: grid; gap: 12px; margin-top: 18px; }
+  .field-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 560px) { .field-row.cols-3 { grid-template-columns: 1fr 1fr; } }
+
+  .field label {
+    display: block; font-size: 0.68rem; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+  }
+  .field select {
+    width: 100%; padding: 10px 30px 10px 11px;
+    border: 1.5px solid var(--border); border-radius: 8px;
+    font-family: 'Figtree', sans-serif; font-size: 0.86rem; color: var(--ink);
+    background: var(--white); outline: none; transition: all 0.2s;
+    -webkit-appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238c8c88' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+  .field select:focus { border-color: var(--accent); }
+
+  /* DISABLED STATE */
+  .field select:disabled,
+  .field select.dimmed {
+    background-color: var(--disabled-bg);
+    color: var(--disabled-text);
+    border-color: var(--border);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  .field label.dimmed { color: var(--disabled-text); }
+
+  /* TILES */
+  .q-block { margin-bottom: 24px; }
+  .q-block:last-child { margin-bottom: 0; }
+  .q-label { font-size: 0.92rem; font-weight: 500; color: var(--ink2); margin-bottom: 4px; }
+  .q-hint  { font-size: 0.73rem; color: var(--muted); margin-bottom: 11px; font-weight: 300; line-height: 1.5; }
+
+  .tile-group { display: grid; gap: 9px; }
+  .tile-group.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .tile-group.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .tile-group.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 580px) {
+    .tile-group.cols-4 { grid-template-columns: repeat(2, 1fr); }
+    .tile-group.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .tile {
+    border: 1.5px solid var(--border); border-radius: 10px; padding: 13px 12px;
+    cursor: pointer; transition: all 0.15s; background: var(--white); position: relative;
+  }
+  .tile:hover { border-color: var(--accent); background: var(--accent-light); }
+  .tile.selected { border-color: var(--accent); background: var(--accent-light); }
+  .tile.selected::after {
+    content: '✓'; position: absolute; top: 8px; right: 10px;
+    font-size: 0.65rem; color: var(--accent); font-weight: 700;
+  }
+  .tile-label  { font-size: 0.8rem; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+  .tile-desc   { font-size: 0.68rem; color: var(--muted); line-height: 1.4; font-weight: 300; }
+  .tile-amount { font-size: 0.73rem; font-weight: 600; color: var(--accent); margin-top: 6px; }
+
+  /* FUEL/HYBRID NOTE */
+  .fuel-note {
+    background: #fdf6ed; border: 1px solid #edd9b8;
+    border-radius: 8px; padding: 11px 14px; margin-top: 11px;
+    font-size: 0.72rem; color: #6b4a1a; line-height: 1.65; display: none;
+  }
+  .fuel-note.visible { display: block; }
+  .fuel-note strong { color: #4a2e08; }
+
+  .ev-note {
+    background: #eef5fb; border: 1px solid #c0d8ed;
+    border-radius: 8px; padding: 11px 14px; margin-top: 11px;
+    font-size: 0.72rem; color: #2c5070; line-height: 1.65; display: none;
+  }
+  .ev-note.visible { display: block; }
+  .ev-note strong { color: #1a3a50; }
+
+  /* ─── RESULTS ──────────────────────────────────────────────────────── */
+  .results-sticky { position: sticky; top: 24px; }
+  .result-card {
+    background: var(--ink); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow-lg);
+  }
+
+  .result-top { padding: 26px 26px 20px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .result-label {
+    font-size: 0.63rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.13em; color: rgba(255,255,255,0.32); margin-bottom: 7px;
+  }
+  .result-total {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem; font-weight: 400; color: white; letter-spacing: -0.03em; line-height: 1;
+  }
+  .result-total sup { font-size: 1.05rem; vertical-align: super; color: rgba(255,255,255,0.4); }
+  .result-sub { font-size: 0.71rem; color: rgba(255,255,255,0.32); margin-top: 6px; }
+
+  .result-lines { padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+
+  .result-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.79rem;
+  }
+  .result-line:last-child { border-bottom: none; }
+  .result-line .rn { color: rgba(255,255,255,0.42); }
+  .result-line .ra { color: rgba(255,255,255,0.78); font-weight: 500; }
+  .result-line.major .rn { color: rgba(255,255,255,0.8); font-weight: 600; }
+  .result-line.major .ra { color: white; font-weight: 700; font-size: 0.85rem; }
+  .result-line.green .rn { color: #6ec492; }
+  .result-line.green .ra { color: #6ec492; font-weight: 600; }
+
+  /* PARF + net cost rows below summary */
+  .parf-row {
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .parf-row-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 24px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.78rem;
+  }
+  .parf-row-item:last-child { border-bottom: none; }
+  .parf-row-label { color: rgba(255,255,255,0.42); }
+  .parf-row-val   { font-weight: 600; color: rgba(255,255,255,0.78); }
+  .green-val      { color: #6ec492; }
+  .net-item .parf-row-label { color: rgba(255,255,255,0.55); font-weight: 500; }
+  .net-item .parf-row-val   { color: white; }
+
+  /* Expandable sub-lines */
+  .result-line.expandable { cursor: pointer; user-select: none; }
+  .result-line.expandable .rn::after {
+    content: ' ›'; font-size: 0.7rem; color: rgba(255,255,255,0.25);
+    transition: transform 0.2s; display: inline-block; margin-left: 4px;
+  }
+  .result-line.expandable.open .rn::after { content: ' ⌄'; }
+
+  .sub-lines { display: none; padding-bottom: 4px; }
+  .sub-lines.open { display: block; }
+  .sub-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 0 5px 14px; font-size: 0.73rem;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .sub-line:last-child { border-bottom: none; }
+  .sub-line .sn { color: rgba(255,255,255,0.28); }
+  .sub-line .sa { color: rgba(255,255,255,0.5); font-weight: 400; }
+
+  /* SUMMARY */
+  .result-summary { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .s-box { padding: 15px 18px; text-align: center; }
+  .s-box:first-child { border-right: 1px solid rgba(255,255,255,0.07); }
+  .s-box .sl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.11em; color: rgba(255,255,255,0.28); margin-bottom: 5px; }
+  .s-box .sv { font-family: 'Playfair Display', serif; font-size: 1.38rem; color: white; }
+
+  /* BAR CHART */
+  .bar-wrap { padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .bar-title { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.11em; color: rgba(255,255,255,0.28); margin-bottom: 12px; }
+  .bar-row { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+  .bar-name { font-size: 0.66rem; color: rgba(255,255,255,0.38); width: 66px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 2px; transition: width 0.42s cubic-bezier(0.4,0,0.2,1); }
+  .bar-pct   { font-size: 0.62rem; color: rgba(255,255,255,0.26); width: 25px; text-align: right; }
+
+  /* INSIGHT */
+  .insight-wrap { padding: 14px 22px 20px; }
+  .insight-text { font-size: 0.75rem; color: rgba(255,255,255,0.42); line-height: 1.65; }
+  .insight-text strong { color: rgba(255,255,255,0.72); }
+
+  /* CTAS */
+
+
+  footer {
+    padding: 40px 24px;
+    font-size: 0.72rem; color: var(--muted);
+    border-top: 1px solid var(--border); line-height: 1.75;
+    background: var(--white);
+  }
+  footer strong { color: var(--ink2); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">Drive<span>sum</span></div>
+    <div class="header-tag">Singapore Car Cost Calculator</div>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>What does your car <em>actually</em> cost?</h1>
+  <p>Enter your car price and how you drive — we'll calculate the full picture.</p>
+</div>
+
+<div class="main">
+  <div class="left-col">
+
+    <!-- ── SECTION 1: Car & Financing ── -->
+    <div class="card">
+      <div class="card-title"><span class="step-num">1</span> Car & Financing</div>
+
+      <div class="price-input-wrap">
+        <span class="price-prefix">$</span>
+        <input class="price-input" type="number" id="carPrice" value="155000" min="50000" max="600000" oninput="calculate()">
+      </div>
+      <p class="price-hint">Total on-the-road price including COE. Check <a href="#" onclick="return false">sgCarMart</a> or <a href="#" onclick="return false">Carro</a>.</p>
+
+      <!-- New vs Used -->
+      <div class="toggle-row" style="margin-top:18px;">
+        <button class="toggle-btn active" id="btn-new"  onclick="setCarCondition('new')">New Car</button>
+        <button class="toggle-btn"        id="btn-used" onclick="setCarCondition('used')">Used Car</button>
+      </div>
+
+      <!-- PARF box -->
+      <div class="parf-box">
+        <div class="parf-box-label">PARF Rebate & Depreciation Basis</div>
+
+        <!-- NEW -->
+        <div id="parfNew">
+          <div class="parf-new-info">
+            New cars receive a <strong>5% PARF rebate</strong> on ARF paid, returned as a lump sum at end of the 10-year COE. Depreciation is calculated over <strong>10 years</strong>.
+          </div>
+        </div>
+
+        <!-- USED -->
+        <div id="parfUsed" style="display:none">
+          <div class="parf-options" id="parfTiles">
+            <div class="parf-tile selected" data-rebate="8000" onclick="selectParfTile(this)">
+              <div class="pt-label">Small / Budget</div>
+              <div class="pt-desc">e.g. Vios, Jazz, Attrage</div>
+              <div class="pt-rebate">Est. PARF ~$8,000</div>
+            </div>
+            <div class="parf-tile" data-rebate="13000" onclick="selectParfTile(this)">
+              <div class="pt-label">Sedan / MPV</div>
+              <div class="pt-desc">e.g. Corolla, Civic, Mazda 3</div>
+              <div class="pt-rebate">Est. PARF ~$13,000</div>
+            </div>
+            <div class="parf-tile" data-rebate="20000" onclick="selectParfTile(this)">
+              <div class="pt-label">Premium / SUV</div>
+              <div class="pt-desc">e.g. BMW 3 Series, C-Class, A4</div>
+              <div class="pt-rebate">Est. PARF ~$20,000</div>
+            </div>
+            <div class="parf-tile" data-rebate="0" onclick="selectParfTile(this)">
+              <div class="pt-label">10+ Years Old</div>
+              <div class="pt-desc">COE value only, no PARF</div>
+              <div class="pt-rebate" style="color:#c84a3a">No PARF rebate</div>
+            </div>
+          </div>
+
+          <div class="years-left-row">
+            <label>Years left on COE</label>
+            <select id="yearsLeft" onchange="onYearsLeftChange()">
+              <option value="9">9 years</option>
+              <option value="8">8 years</option>
+              <option value="7" selected>7 years</option>
+              <option value="6">6 years</option>
+              <option value="5">5 years</option>
+              <option value="4">4 years</option>
+              <option value="3">3 years</option>
+              <option value="2">2 years</option>
+              <option value="1">1 year</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="depn-preview" id="depnPreview"></div>
+      </div>
+
+      <!-- Loan fields -->
+      <div class="field-row cols-3">
+        <div class="field">
+          <label>Loan Amount</label>
+          <select id="loanPct" onchange="onLoanPctChange()">
+            <option value="0.6" selected>60% (typical)</option>
+            <option value="0.7">70%</option>
+            <option value="0.5">50%</option>
+            <option value="0.4">40%</option>
+            <option value="0">No loan</option>
+          </select>
+        </div>
+        <div class="field" id="tenureField">
+          <label id="tenureLabel">Loan Tenure</label>
+          <select id="loanTenure" onchange="calculate()">
+            <option value="7" selected>7 Years</option>
+            <option value="5">5 Years</option>
+          </select>
+        </div>
+        <div class="field" id="rateField">
+          <label id="rateLabel">Interest Rate</label>
+          <select id="interestRate" onchange="calculate()">
+            <option value="2.68" selected>2.68% (avg)</option>
+            <option value="2.28">2.28% (low)</option>
+            <option value="3.0">3.0% (high)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 2: Usage & Parking ── -->
+    <div class="card">
+      <div class="card-title"><span class="step-num">2</span> Usage & Parking</div>
+
+      <div class="q-block">
+        <div class="q-label">How much do you drive?</div>
+        <div class="q-hint" id="fuelHint">Based on 14km/L at $2.80/L for petrol.</div>
+        <div class="tile-group cols-3" id="usage">
+          <div class="tile selected" data-val="light" onclick="selectTile(this,'usage'); calculate()">
+            <div class="tile-label">Light</div>
+            <div class="tile-desc">~500km/mo, weekends & errands</div>
+            <div class="tile-amount" id="ua_light">—</div>
+          </div>
+          <div class="tile" data-val="moderate" onclick="selectTile(this,'usage'); calculate()">
+            <div class="tile-label">Moderate</div>
+            <div class="tile-desc">~1,500km/mo, up to 50km/day</div>
+            <div class="tile-amount" id="ua_moderate">—</div>
+          </div>
+          <div class="tile" data-val="heavy" onclick="selectTile(this,'usage'); calculate()">
+            <div class="tile-label">Heavy</div>
+            <div class="tile-desc">~2,500km/mo, long daily commute</div>
+            <div class="tile-amount" id="ua_heavy">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label">Home parking</div>
+        <div class="tile-group cols-2" id="homeparking">
+          <div class="tile selected" data-val="hdb" onclick="selectTile(this,'homeparking'); calculate()">
+            <div class="tile-label">HDB Season Parking</div>
+            <div class="tile-desc">Monthly season ticket</div>
+            <div class="tile-amount">~$110/mo</div>
+          </div>
+          <div class="tile" data-val="private" onclick="selectTile(this,'homeparking'); calculate()">
+            <div class="tile-label">Condo / Landed</div>
+            <div class="tile-desc">Free or included in fees</div>
+            <div class="tile-amount">$0/mo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label">ERP — how often do you pass through gantries?</div>
+        <div class="q-hint">Peak-hour charges on expressways and in restricted zones. Separate from parking costs.</div>
+        <div class="tile-group cols-3" id="erp">
+          <div class="tile selected" data-val="low" onclick="selectTile(this,'erp'); calculate()">
+            <div class="tile-label">Rarely</div>
+            <div class="tile-desc">Off-peak or avoid expressways</div>
+            <div class="tile-amount">~$20/mo</div>
+          </div>
+          <div class="tile" data-val="mid" onclick="selectTile(this,'erp'); calculate()">
+            <div class="tile-label">Sometimes</div>
+            <div class="tile-desc">Occasional peak-hour use</div>
+            <div class="tile-amount">~$80/mo</div>
+          </div>
+          <div class="tile" data-val="high" onclick="selectTile(this,'erp'); calculate()">
+            <div class="tile-label">Daily</div>
+            <div class="tile-desc">Regular peak-hour commute</div>
+            <div class="tile-amount">~$180/mo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block" style="margin-bottom:0">
+        <div class="q-label">Office / workplace parking</div>
+        <div class="q-hint">Season parking at your workplace. Town locations (CBD, Orchard, Marina Bay) cost significantly more.</div>
+        <div class="tile-group cols-3" id="officeparking">
+          <div class="tile selected" data-val="none" onclick="selectTile(this,'officeparking'); calculate()">
+            <div class="tile-label">None / WFH</div>
+            <div class="tile-desc">No workplace parking</div>
+            <div class="tile-amount">$0/mo</div>
+          </div>
+          <div class="tile" data-val="nontown" onclick="selectTile(this,'officeparking'); calculate()">
+            <div class="tile-label">Non-town</div>
+            <div class="tile-desc">Business park, industrial, suburban</div>
+            <div class="tile-amount">~$100/mo</div>
+          </div>
+          <div class="tile" data-val="town" onclick="selectTile(this,'officeparking'); calculate()">
+            <div class="tile-label">Town / CBD</div>
+            <div class="tile-desc">CBD, Orchard, Marina Bay</div>
+            <div class="tile-amount">~$200/mo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 3: Maintenance ── -->
+    <div class="card">
+      <div class="card-title"><span class="step-num">3</span> Maintenance</div>
+
+      <div class="q-block">
+        <div class="q-label">Powertrain</div>
+        <div class="tile-group cols-3" id="cartype">
+          <div class="tile selected" data-val="petrol" onclick="selectTile(this,'cartype'); calculate()">
+            <div class="tile-label">Petrol</div>
+            <div class="tile-desc">Standard ICE</div>
+          </div>
+          <div class="tile" data-val="hybrid" onclick="selectTile(this,'cartype'); calculate()">
+            <div class="tile-label">Hybrid</div>
+            <div class="tile-desc">Self-charging, better efficiency</div>
+          </div>
+          <div class="tile" data-val="electric" onclick="selectTile(this,'cartype'); calculate()">
+            <div class="tile-label">Electric</div>
+            <div class="tile-desc">Full BEV, lowest running cost</div>
+          </div>
+        </div>
+        <!-- Hybrid note -->
+        <div class="fuel-note" id="hybridNote">
+          <strong>Hybrid fuel cost:</strong> Full hybrids (e.g. Toyota Corolla Hybrid, Honda Fit Hybrid) achieve ~20–22km/L in Singapore conditions — about 45% better than a standard petrol car. This is estimated at <strong>21km/L at $2.80/L</strong>. Mild hybrids get ~16–17km/L; this calculator uses full hybrid rates. Maintenance costs are similar to petrol — the self-charging battery rarely needs replacement.
+        </div>
+        <!-- EV note -->
+        <div class="ev-note" id="evNote">
+          <strong>EV fuel cost:</strong> Estimated at 6.5km/kWh at $0.40/kWh — a blended rate reflecting that most Singapore EV owners use a mix of home charging (~$0.30/kWh) and public AC charging (~$0.40–0.65/kWh). HDB residents without home chargers will be closer to the public rate. This is roughly <strong>55–60% cheaper</strong> per km than petrol.
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label">Car make</div>
+        <div class="q-hint">Japanese and Korean cars are cheaper to service locally. European car costs rise steeply with age.</div>
+        <div class="tile-group cols-2" id="origin">
+          <div class="tile selected" data-val="japanese" onclick="selectTile(this,'origin'); calculate()">
+            <div class="tile-label">Japanese / Korean</div>
+            <div class="tile-desc">Toyota, Honda, Mazda, Hyundai, Kia</div>
+          </div>
+          <div class="tile" data-val="european" onclick="selectTile(this,'origin'); calculate()">
+            <div class="tile-label">European</div>
+            <div class="tile-desc">BMW, Mercedes, Audi, VW, Volvo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="q-block" style="margin-bottom:0">
+        <div class="q-label">Car age</div>
+        <div class="tile-group cols-4" id="carage">
+          <div class="tile selected" data-val="new" onclick="selectTile(this,'carage'); calculate()">
+            <div class="tile-label">0–3 yrs</div>
+            <div class="tile-desc">Under warranty</div>
+          </div>
+          <div class="tile" data-val="mid" onclick="selectTile(this,'carage'); calculate()">
+            <div class="tile-label">3–7 yrs</div>
+            <div class="tile-desc">Post-warranty</div>
+          </div>
+          <div class="tile" data-val="old" onclick="selectTile(this,'carage'); calculate()">
+            <div class="tile-label">7–10 yrs</div>
+            <div class="tile-desc">Higher wear</div>
+          </div>
+          <div class="tile" data-val="vold" onclick="selectTile(this,'carage'); calculate()">
+            <div class="tile-label">10+ yrs</div>
+            <div class="tile-desc">High parts cost</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTION 4: Insurance ── -->
+    <div class="card">
+      <div class="card-title"><span class="step-num">4</span> Insurance</div>
+      <div class="q-block" style="margin-bottom:0">
+        <div class="q-label">How long have you been driving?</div>
+        <div class="q-hint">Your No-Claim Discount (NCD) is the biggest lever on your premium. 50% NCD (5+ claim-free years) can halve your annual cost.</div>
+        <div class="tile-group cols-3" id="experience">
+          <div class="tile selected" data-val="new" onclick="selectTile(this,'experience'); calculate()">
+            <div class="tile-label">Under 3 yrs</div>
+            <div class="tile-desc">0–20% NCD</div>
+            <div class="tile-amount">~$1,900/yr</div>
+          </div>
+          <div class="tile" data-val="mid" onclick="selectTile(this,'experience'); calculate()">
+            <div class="tile-label">3–8 years</div>
+            <div class="tile-desc">30–40% NCD</div>
+            <div class="tile-amount">~$1,350/yr</div>
+          </div>
+          <div class="tile" data-val="exp" onclick="selectTile(this,'experience'); calculate()">
+            <div class="tile-label">8+ years</div>
+            <div class="tile-desc">50% NCD</div>
+            <div class="tile-amount">~$900/yr</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end left-col -->
+
+  <!-- ── RESULTS PANEL ── -->
+  <div class="results-sticky">
+    <div class="result-card">
+      <div class="result-top">
+        <div class="result-label">Estimated monthly cost</div>
+        <div class="result-total"><sup>S$</sup><span id="totalMonthly">—</span></div>
+        <div class="result-sub" id="resultSub">Fill in the sections to see your estimate</div>
+      </div>
+
+      <div class="result-lines">
+        <!-- Cost of car — expandable -->
+        <div class="result-line major expandable" id="carCostLine" onclick="toggleSubLines()">
+          <span class="rn">Cost of car</span>
+          <span class="ra" id="r_carcost">—</span>
+        </div>
+        <div class="sub-lines" id="carCostSub">
+          <div class="sub-line">
+            <span class="sn">↳ Depreciation</span>
+            <span class="sa" id="r_dep">—</span>
+          </div>
+          <div class="sub-line">
+            <span class="sn">↳ Loan interest</span>
+            <span class="sa" id="r_interest">—</span>
+          </div>
+          <div class="sub-line">
+            <span class="sn">↳ Principal repayment*</span>
+            <span class="sa" id="r_principal">—</span>
+          </div>
+          <div class="sub-line" style="padding-top:6px;">
+            <span class="sn" style="color:rgba(255,255,255,0.18);font-style:italic;font-size:0.66rem;">* Cash outflow, not an additional cost — offset by PARF rebate</span>
+            <span class="sa"></span>
+          </div>
+        </div>
+
+        <div class="result-line"><span class="rn">Insurance</span><span class="ra" id="r_ins">—</span></div>
+        <div class="result-line"><span class="rn">Road tax</span><span class="ra" id="r_tax">—</span></div>
+        <div class="result-line"><span class="rn">Home parking</span><span class="ra" id="r_hpark">—</span></div>
+        <div class="result-line"><span class="rn">ERP (gantry tolls)</span><span class="ra" id="r_erp">—</span></div>
+        <div class="result-line"><span class="rn">Office parking</span><span class="ra" id="r_opark">—</span></div>
+        <div class="result-line"><span class="rn">Fuel / charging</span><span class="ra" id="r_fuel">—</span></div>
+        <div class="result-line"><span class="rn">Maintenance</span><span class="ra" id="r_maint">—</span></div>
+
+      </div>
+
+      <div class="result-summary">
+        <div class="s-box"><div class="sl">Per year</div><div class="sv" id="annualTotal">—</div></div>
+        <div class="s-box"><div class="sl">Over car lifetime</div><div class="sv" id="tenureTotal">—</div></div>
+      </div>
+      <div class="parf-row">
+        <div class="parf-row-item">
+          <span class="parf-row-label">PARF rebate at end of life*</span>
+          <span class="parf-row-val green-val" id="r_parf">—</span>
+        </div>
+        <div class="parf-row-item net-item">
+          <span class="parf-row-label">Net lifetime cost</span>
+          <span class="parf-row-val" id="r_netlift">—</span>
+        </div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-title">Where your money goes</div>
+        <div id="barChart"></div>
+      </div>
+
+      <div class="insight-wrap">
+        <div class="insight-text" id="insightText">Complete the sections on the left to see your breakdown.</div>
+      </div>
+
+
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<footer>
+  <div style="max-width:780px;margin:0 auto;">
+    <div style="font-size:0.78rem;font-weight:600;color:var(--ink2);margin-bottom:10px;">Important Disclaimer</div>
+    <p style="margin-bottom:8px;">This calculator provides <strong>estimates for general informational purposes only</strong> and does not constitute financial advice, investment advice, or any form of professional advice. The figures generated are approximations based on generalised assumptions and publicly available data, and may not reflect your actual costs.</p>
+    <p style="margin-bottom:8px;">Drivesum is not a licensed financial adviser, insurance broker, or motor dealer. Nothing on this website should be relied upon as a substitute for independent professional advice tailored to your specific circumstances. You should seek advice from a qualified professional before making any financial or purchasing decisions.</p>
+    <p style="margin-bottom:8px;">All costs shown are estimates only. Actual costs will vary based on individual driving behaviour, specific vehicle, insurer, financing terms, and prevailing market conditions. COE prices, road tax rates, ERP charges, petrol prices, and parking rates are subject to change and may differ from figures used in this calculator.</p>
+    <p style="margin-bottom:14px;">To the fullest extent permitted by Singapore law, Drivesum and its operators accept no liability for any loss, damage, or expense incurred as a result of reliance on the information provided by this calculator.</p>
+    <div style="border-top:1px solid var(--border);padding-top:12px;font-size:0.65rem;color:var(--muted);line-height:1.8;">
+      Fuel assumptions: Petrol 14km/L at $2.80/L · Hybrid 21km/L at $2.80/L · EV 6.5km/kWh at $0.40/kWh (blended home + public charging)<br>
+      New car PARF: 5% of ARF paid · Used car PARF: estimated by car category* · Loan: flat (add-on) interest rate<br>
+      *PARF rebate is an estimate. Actual rebate depends on ARF paid at time of registration and prevailing LTA policies.<br>
+      Road tax estimated from car price bracket · Season parking: town ~$200/mo, non-town ~$100/mo (2025 averages)<br>
+      © 2025 Drivesum. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ─── CONSTANTS ──────────────────────────────────────────────────────────
+  const KM    = { light: 500, moderate: 1500, heavy: 2500 };
+  const ERP   = { low: 20, mid: 80, high: 180 };
+  const HPARK = { hdb: 110, private: 0 };
+  const OPARK = { none: 0, nontown: 100, town: 200 };
+  const INS   = { new: 1900, mid: 1350, exp: 900 }; // annual
+
+  // Maintenance: 4 age brackets including 10+
+  const MAINT = {
+    japanese: { new: 70,  mid: 130, old: 185, vold: 260 },
+    european: { new: 110, mid: 220, old: 360, vold: 500 }
+  };
+
+  // Fuel efficiency by powertrain
+  const FUEL_SPEC = {
+    petrol:   { kmL: 14,   ppl: 2.80 },
+    hybrid:   { kmL: 21,   ppl: 2.80 },
+    electric: { kmKwh: 6.5, pKwh: 0.40 }
+  };
+
+  function fuelCost(km, type) {
+    if (type === 'electric') return (km / FUEL_SPEC.electric.kmKwh) * FUEL_SPEC.electric.pKwh;
+    const s = FUEL_SPEC[type] || FUEL_SPEC.petrol;
+    return (km / s.kmL) * s.ppl;
+  }
+
+  function roadTaxAnnual(price, type) {
+    if (type === 'electric') return 380;
+    if (price > 280000) return 1760;
+    if (price > 200000) return 1300;
+    if (price > 140000) return 742;
+    return 580;
+  }
+
+  // ─── STATE ──────────────────────────────────────────────────────────────
+  let carCondition = 'new';
+
+  function setCarCondition(cond) {
+    carCondition = cond;
+    document.getElementById('btn-new').classList.toggle('active',  cond === 'new');
+    document.getElementById('btn-used').classList.toggle('active', cond === 'used');
+    document.getElementById('parfNew').style.display  = cond === 'new'  ? 'block' : 'none';
+    document.getElementById('parfUsed').style.display = cond === 'used' ? 'block' : 'none';
+    updateLoanTenureOptions();
+    calculate();
+  }
+
+  function selectParfTile(el) {
+    document.querySelectorAll('#parfTiles .parf-tile').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    calculate();
+  }
+
+  function onYearsLeftChange() {
+    updateLoanTenureOptions();
+    calculate();
+  }
+
+  // Keep loan tenure options ≤ years left on COE (for used cars)
+  function updateLoanTenureOptions() {
+    const sel     = document.getElementById('loanTenure');
+    const maxYrs  = carCondition === 'used' ? parseInt(document.getElementById('yearsLeft').value) : 99;
+    const current = parseInt(sel.value);
+
+    sel.innerHTML = '';
+    [7, 5].forEach(y => {
+      if (y <= maxYrs) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y + ' Years';
+        if (y === current || (!sel.options.length)) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    });
+
+    // If only one option, just add it selected
+    if (!sel.options.length) {
+      [7, 5, 3, 2, 1].forEach(y => {
+        if (y <= maxYrs && !sel.options.length) {
+          const opt = document.createElement('option');
+          opt.value = y; opt.textContent = y + (y === 1 ? ' Year' : ' Years');
+          opt.selected = true;
+          sel.appendChild(opt);
+        }
+      });
+    }
+  }
+
+  function getParfRebate() {
+    if (carCondition === 'new') {
+      const price  = parseFloat(document.getElementById('carPrice').value) || 155000;
+      const estOMV = price * 0.13;
+      const estARF = estOMV <= 20000 ? estOMV : 20000 + (estOMV - 20000) * 1.4;
+      return estARF * 0.05;
+    }
+    const sel = document.querySelector('#parfTiles .parf-tile.selected');
+    return sel ? parseFloat(sel.dataset.rebate) : 8000;
+  }
+
+  function getYearsLeft() {
+    if (carCondition === 'new') return 10;
+    return parseInt(document.getElementById('yearsLeft').value) || 7;
+  }
+
+  // ── Loan "No loan" handler ───────────────────────────────────────────────
+  function onLoanPctChange() {
+    const noLoan = parseFloat(document.getElementById('loanPct').value) === 0;
+
+    const tenureSel = document.getElementById('loanTenure');
+    const rateSel   = document.getElementById('interestRate');
+    const tenureLbl = document.getElementById('tenureLabel');
+    const rateLbl   = document.getElementById('rateLabel');
+
+    tenureSel.disabled = noLoan;
+    rateSel.disabled   = noLoan;
+    tenureSel.classList.toggle('dimmed', noLoan);
+    rateSel.classList.toggle('dimmed',   noLoan);
+    tenureLbl.classList.toggle('dimmed', noLoan);
+    rateLbl.classList.toggle('dimmed',   noLoan);
+
+    calculate();
+  }
+
+  // ─── HELPERS ────────────────────────────────────────────────────────────
+  function fmt(n)  { return '$' + Math.round(n).toLocaleString('en-SG'); }
+  function fmtK(n) { return '$' + (n >= 1000 ? Math.round(n / 1000) + 'k' : Math.round(n)); }
+
+  function selectTile(el, group) {
+    document.querySelectorAll(`#${group} .tile`).forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function getSelected(group) {
+    const sel = document.querySelector(`#${group} .tile.selected`);
+    return sel ? sel.dataset.val : null;
+  }
+
+  function toggleSubLines() {
+    const line = document.getElementById('carCostLine');
+    const sub  = document.getElementById('carCostSub');
+    line.classList.toggle('open');
+    sub.classList.toggle('open');
+  }
+
+  // ─── MAIN CALC ──────────────────────────────────────────────────────────
+  let debounce;
+  function calculate() {
+    clearTimeout(debounce);
+    debounce = setTimeout(_calc, 100);
+  }
+
+  function _calc() {
+    const price   = parseFloat(document.getElementById('carPrice').value) || 0;
+    const loanPct = parseFloat(document.getElementById('loanPct').value);
+    const loanYrs = parseInt(document.getElementById('loanTenure').value) || 7;
+    const intRate = parseFloat(document.getElementById('interestRate').value) / 100 || 0.0268;
+
+    const usageV   = getSelected('usage')         || 'light';
+    const hparkV   = getSelected('homeparking')   || 'hdb';
+    const erpV     = getSelected('erp')           || 'low';
+    const oparkV   = getSelected('officeparking') || 'none';
+    const cartypeV = getSelected('cartype')       || 'petrol';
+    const originV  = getSelected('origin')        || 'japanese';
+    const ageV     = getSelected('carage')        || 'new';
+    const expV     = getSelected('experience')    || 'new';
+
+    const isEV     = cartypeV === 'electric';
+    const isHybrid = cartypeV === 'hybrid';
+
+    // Show/hide notes
+    document.getElementById('hybridNote').classList.toggle('visible', isHybrid);
+    document.getElementById('evNote').classList.toggle('visible',     isEV);
+
+    // Update fuel hint
+    document.getElementById('fuelHint').textContent =
+      isEV     ? 'EV: estimated at 6.5km/kWh × $0.40/kWh (blended home + public charging rate).' :
+      isHybrid ? 'Hybrid: estimated at 21km/L × $2.80/L (full hybrid efficiency).' :
+                 'Petrol: estimated at 14km/L × $2.80/L (Singapore average).';
+
+    const parfRebate = getParfRebate();
+    const yearsLeft  = getYearsLeft();
+
+    // Loan (flat/add-on rate)
+    const principal        = price * loanPct;
+    const totalInterestAmt = principal * intRate * loanYrs;
+    const loanMoTotal      = principal > 0 ? (principal + totalInterestAmt) / (loanYrs * 12) : 0;
+    const principalMo      = principal > 0 ? principal / (loanYrs * 12) : 0;
+    const interestMo       = loanMoTotal - principalMo;
+
+    // "Cost of car" logic — mutually exclusive, no double count:
+    //   With loan: loan repayment (principal + interest) covers the car purchase
+    //   No loan (cash buyer): depreciation = full price ÷ years (economic cost of ownership)
+    const hasLoan   = loanPct > 0;
+    const depnMo    = !hasLoan && yearsLeft > 0 ? price / yearsLeft / 12 : 0;
+    const carCostMo = hasLoan ? loanMoTotal : depnMo;
+    // Interest paid monthly (shown in sub-breakdown for loan buyers)
+    const interestMoDisplay = hasLoan ? interestMo : 0;
+
+    // Road tax
+    const rtMo  = roadTaxAnnual(price, cartypeV) / 12;
+
+    // Insurance
+    const insMo = INS[expV] / 12;
+
+    // Parking & ERP
+    const hparkMo = HPARK[hparkV];
+    const oparkMo = OPARK[oparkV];
+    const erpMo   = ERP[erpV];
+
+    // Fuel
+    const km     = KM[usageV];
+    const fuelMo = fuelCost(km, cartypeV);
+
+    // Maintenance
+    const maintMo = MAINT[originV][ageV];
+
+    // Total monthly = cost of car (loan OR depreciation) + all running costs
+    const total  = carCostMo + insMo + rtMo + hparkMo + erpMo + oparkMo + fuelMo + maintMo;
+    const annual  = total * 12;
+    const tenure  = annual * yearsLeft;
+
+    // ── Fuel tile previews ──
+    ['light','moderate','heavy'].forEach(u => {
+      const el = document.getElementById(`ua_${u}`);
+      if (el) el.textContent = `~${fmt(fuelCost(KM[u], cartypeV))}/mo`;
+    });
+
+    // ── Depn / cost-of-car preview ──
+    if (hasLoan) {
+      document.getElementById('depnPreview').innerHTML =
+        `<strong>Loan repayment:</strong> ${fmt(carCostMo)}/mo — ${fmt(principal)} borrowed over ${loanYrs} yrs at ${(intRate*100).toFixed(2)}% p.a. flat. Interest paid: ${fmt(interestMoDisplay)}/mo. PARF rebate of ${fmt(parfRebate)} returned as lump sum at end of life.`;
+    } else {
+      document.getElementById('depnPreview').innerHTML =
+        `<strong>Depreciation (cash buyer):</strong> ${fmt(depnMo)}/mo — ${fmt(price)} ÷ ${yearsLeft} yr${yearsLeft !== 1 ? 's' : ''} remaining. PARF rebate of ${fmt(parfRebate)} returned as lump sum at end of life.`;
+    }
+
+    // ── Results panel ──
+    document.getElementById('totalMonthly').textContent = Math.round(total).toLocaleString('en-SG');
+    document.getElementById('resultSub').textContent    = `${fmt(annual)}/year · ${fmt(tenure)} over ${yearsLeft} yr${yearsLeft!==1?'s':''}`;
+
+    // "Cost of car" line and sub-breakdown
+    document.getElementById('r_carcost').textContent  = fmt(carCostMo);
+    if (hasLoan) {
+      document.getElementById('r_dep').textContent      = fmt(principalMo) + ' /mo';
+      document.getElementById('r_interest').textContent = fmt(interestMoDisplay);
+      document.getElementById('r_principal').textContent = fmt(principalMo);
+      // Update sub-line labels dynamically
+      document.querySelector('#carCostSub .sub-line:nth-child(1) .sn').textContent = '↳ Principal repayment';
+      document.querySelector('#carCostSub .sub-line:nth-child(2) .sn').textContent = '↳ Loan interest';
+    } else {
+      document.getElementById('r_dep').textContent      = fmt(depnMo);
+      document.getElementById('r_interest').textContent = '—';
+      document.getElementById('r_principal').textContent = '—';
+      document.querySelector('#carCostSub .sub-line:nth-child(1) .sn').textContent = '↳ Depreciation';
+      document.querySelector('#carCostSub .sub-line:nth-child(2) .sn').textContent = '↳ Interest';
+    }
+
+    document.getElementById('r_ins').textContent   = fmt(insMo);
+    document.getElementById('r_tax').textContent   = fmt(rtMo);
+    document.getElementById('r_hpark').textContent = fmt(hparkMo);
+    document.getElementById('r_erp').textContent   = fmt(erpMo);
+    document.getElementById('r_opark').textContent = fmt(oparkMo);
+    document.getElementById('r_fuel').textContent  = fmt(fuelMo);
+    document.getElementById('r_maint').textContent = fmt(maintMo);
+
+    document.getElementById('annualTotal').textContent = fmtK(annual);
+    document.getElementById('tenureTotal').textContent = fmtK(tenure);
+    document.getElementById('r_parf').textContent    = `+${fmt(parfRebate)}`;
+    document.getElementById('r_netlift').textContent = fmt(tenure - parfRebate);
+
+    // ── Bar chart ──
+    const items = [
+      { name: 'Car cost',  val: carCostMo,  color: '#c8873a' },
+      { name: 'Fuel',      val: fuelMo,     color: '#5b8db8' },
+      { name: 'Parking',   val: hparkMo + oparkMo, color: '#9b7eb8' },
+      { name: 'Insurance', val: insMo,      color: '#b85b6e' },
+      { name: 'ERP',       val: erpMo,      color: '#b8a05b' },
+      { name: 'Maint.',    val: maintMo,    color: '#7eb8a0' },
+      { name: 'Road Tax',  val: rtMo,       color: '#8db85b' },
+    ];
+    const maxV = Math.max(...items.map(i => i.val), 1);
+    document.getElementById('barChart').innerHTML = items.map(i => `
+      <div class="bar-row">
+        <div class="bar-name">${i.name}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(i.val/maxV*100).toFixed(1)}%;background:${i.color}55;border-right:2px solid ${i.color}"></div></div>
+        <div class="bar-pct">${total > 0 ? Math.round(i.val/total*100) : 0}%</div>
+      </div>
+    `).join('');
+
+    // ── Smart insight ──
+    const petrolEq = fuelCost(km, 'petrol');
+    let insight = '';
+
+    if (isEV) {
+      const saving = Math.round(petrolEq - fuelMo);
+      insight = `<strong>Your EV saves ~${fmt(saving)}/month on fuel</strong> vs a petrol car — ${fmt(saving*12)}/year, or ${fmt(saving*12*yearsLeft)} over your remaining ${yearsLeft} years.`;
+    } else if (isHybrid) {
+      const saving = Math.round(petrolEq - fuelMo);
+      insight = `<strong>Your hybrid saves ~${fmt(saving)}/month on fuel</strong> vs a standard petrol car — ${fmt(saving*12)}/year. Over ${yearsLeft} years that's ${fmt(saving*12*yearsLeft)} in fuel savings.`;
+    } else if (hasLoan && interestMoDisplay > 200) {
+      insight = `<strong>You're paying ${fmt(interestMoDisplay)}/mo in loan interest</strong> — ${fmt(interestMoDisplay*12)}/year that you never get back. Tap "Cost of car" above to see the full breakdown.`;
+    } else if (oparkMo + erpMo > total * 0.18) {
+      insight = `<strong>Commuting adds ${fmt(oparkMo+erpMo)}/month</strong> (ERP + office parking) — ${Math.round((oparkMo+erpMo)/total*100)}% of your total cost. WFH 2 days more per week could save ~${fmt((oparkMo+erpMo)*0.4)}/month.`;
+    } else if (originV === 'european' && (ageV === 'old' || ageV === 'vold')) {
+      const jpEquiv = MAINT.japanese[ageV];
+      insight = `<strong>Maintaining an older European car costs ${fmt(maintMo)}/month</strong> — ${fmt((maintMo-jpEquiv)*12)}/year more than a Japanese equivalent at the same age.`;
+    } else {
+      insight = `<strong>Total spend over ${yearsLeft} year${yearsLeft!==1?'s':''}: ${fmt(tenure)}.</strong> You'll receive a PARF rebate of ${fmt(parfRebate)} when you scrap or deregister — bringing your net lifetime cost to ${fmt(tenure - parfRebate)}.`;
+    }
+    document.getElementById('insightText').innerHTML = insight;
+  }
+
+  // ─── INIT ────────────────────────────────────────────────────────────────
+  calculate();
+</script>
+</body>
+</html>
