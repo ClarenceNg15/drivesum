@@ -6,15 +6,17 @@ const app     = express();
 const PORT    = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../public')));
+
+// Serve static files from same directory as server.js
+app.use(express.static(path.join(__dirname)));
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve index.html for all routes (SPA)
+// Serve index.html for all routes
 app.get('*', (_req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => {
